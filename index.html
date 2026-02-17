@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cash Book</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Mobile Web App Capable -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+</head>
+
+<body>
+
+    <div id="app" class="app-container">
+        <!-- Header (Shared/Dynamic) -->
+        <header class="app-header">
+            <div id="header-content" style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <img src="logo.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain;">
+                    <span style="font-weight: 700; font-size: 1.2rem;">Cash Book</span>
+                </div>
+            </div>
+
+            <!-- Sync button moved to System tab -->
+            <div class="header-actions">
+            </div>
+        </header>
+
+        <!-- View: Dashboard (Stats) -->
+        <div id="view-dashboard" class="view">
+            <h2 class="mb-4">Cash Flow</h2>
+
+            <div class="filter-tabs">
+                <div class="filter-tab active" onclick="app.setDashboardFilter('30d')">30 Days</div>
+                <div class="filter-tab" onclick="app.setDashboardFilter('3m')">3 Months</div>
+                <div class="filter-tab" onclick="app.setDashboardFilter('6m')">6 Months</div>
+                <div class="filter-tab" onclick="app.setDashboardFilter('1y')">1 Year</div>
+            </div>
+
+            <div class="cash-flow-summary">
+                <div class="summary-card in">
+                    <div class="summary-label">Cash In (Collected)</div>
+                    <div id="summary-in" class="summary-amount in">Rs 0</div>
+                </div>
+                <div class="summary-card out">
+                    <div class="summary-label">Cash Out (Given)</div>
+                    <div id="summary-out" class="summary-amount out">Rs 0</div>
+                </div>
+            </div>
+
+            <h3 class="mt-2 mb-4">Recent Transactions</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Party Name</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-transactions-body">
+                        <!-- Injected JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="mt-2 mb-4" style="margin-top: 2rem;">Oldest Pending Credits</h3>
+            <div id="older-credits-list" class="card" style="padding: 0;">
+                <!-- Injected JS -->
+            </div>
+        </div>
+
+        <!-- View: Home (Customers List) -->
+        <div id="view-customers" class="view active">
+            <div id="dashboard-header" class="card"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                <!-- Content injected by JS -->
+            </div>
+
+            <div class="search-bar">
+                <div style="position: relative;">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search customers..."
+                        onkeyup="app.filterCustomers(this.value)">
+                </div>
+            </div>
+
+            <div id="customer-list">
+                <!-- Customer items injected here -->
+            </div>
+
+            <button class="btn btn-primary btn-floating" onclick="app.showAddCustomerModal()">
+                +
+            </button>
+        </div>
+
+        <!-- View: Customer Detail -->
+        <div id="view-customer-detail" class="view">
+            <div id="detail-header" style="display: flex; align-items: center; margin-bottom: 1rem;">
+                <!-- Back button and Name injected here -->
+            </div>
+
+            <div id="detail-content">
+                <!-- Balance card and Transactions injected here -->
+            </div>
+        </div>
+
+        <!-- View: System (Settings) -->
+        <div id="view-settings" class="view">
+            <h2 class="mb-4">System Settings</h2>
+
+            <div class="card">
+                <h3>Database Management</h3>
+                <p class="text-sm text-muted mb-4">Backup your data or restore from a file.</p>
+
+                <button class="btn btn-primary mb-4" onclick="app.downloadJSON()" style="width: 100%;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Download Backup (JSON)
+                </button>
+
+                <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+
+                <div class="form-group">
+                    <label class="form-label">Import from JSON URL</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="url" id="json-url-input" class="form-input"
+                            placeholder="https://example.com/db.json">
+                        <button class="btn btn-success" onclick="app.loadFromURLInput()">Load</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="app.navigate('customers')" id="nav-customers">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" onclick="app.navigate('dashboard')" id="nav-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" onclick="app.navigate('settings')" id="nav-settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                <span>System</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="modal-content" class="modal">
+            <!-- Modal injected here -->
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Inline simple filter function since it wasn't in app.js
+        app.filterCustomers = (query) => {
+            const list = document.getElementById('customer-list');
+            const items = list.getElementsByClassName('customer-item');
+            query = query.toLowerCase();
+            for (let item of items) {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(query) ? 'flex' : 'none';
+            }
+        };
+
+        // Handle JSON Upload/Sync logic to actually read the file input if needed
+        // For now, the app.js handles URL based sync which is what prompt asked.
+    </script>
+</body>
+
+</html>
